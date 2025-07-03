@@ -1,28 +1,21 @@
 <template>
-  <main
-    class="
-      h-full w-full
-      flex justify-start items-center flex-col
-      text-slate-700
-    "
-  >
-    <nav-bar></nav-bar>
 
-    <main-content></main-content>
+  <div class="flex flex-col min-h-screen">
+    <HeaderBar />
+    <div class="flex flex-1">
+      <SideBar />
+      <main class="flex-1 p-6 bg-gray-100 overflow-y-auto">
+        <router-view />
+      </main>
+    </div>
 
-    <!-- optional: you can remove this readme -->
-    <read-me
-      class="
-        p-4 m-4
-        max-h-2/3 overflow-auto
-        border border-slate-100 rounded
-      "
-    ></read-me>
-  </main>
+    <FooterBar />
+  </div>
+
 </template>
 
 <script setup lang="ts">
-import NavBar from 'src/components/nav-bar.vue';
-import MainContent from 'src/components/main-content.vue';
-import ReadMe from 'src/components/read-me.vue';
+  import SideBar from 'src/components/layouts/side-bar.vue'
+  import HeaderBar from 'src/components/layouts/header-bar.vue'
+  import FooterBar from 'src/components/layouts/footer-bar.vue'
 </script>

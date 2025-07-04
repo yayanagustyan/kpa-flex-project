@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import type { GuestType } from '../services/guest-repository'
 import { guests, loadGuests, saveGuest, deleteId, showInfoModal, showModal, showDelModal, loading, hasPrev, revert, infoText, resetData } 
   from '../controllers/guest-controller'
@@ -11,7 +11,26 @@ const currentGuest = ref < GuestType > ({
   tickets: 0
 })
 
-const inputRef = ref<HTMLInputElement | null>(null)
+const currentPage = ref(1)
+const itemsPerPage = ref(5)
+
+const from = computed(() => (currentPage.value - 1) * itemsPerPage.value + 1)
+
+const to = computed(() => {
+  const last = currentPage.value * itemsPerPage.value
+  return last > guests.value.length ? guests.value.length : last
+})
+
+const totalPages = computed(() => Math.ceil(guests.value.length / itemsPerPage.value))
+
+const paginatedGuests = computed(() => {
+  const start = (currentPage.value - 1) * itemsPerPage.value
+  return guests.value.slice(start, start + itemsPerPage.value)
+})
+
+function setPage(page: number) {
+  if (page >= 1 && page <= totalPages.value) currentPage.value = page
+}
 
 onMounted(async () => {
   loadGuests()
@@ -23,7 +42,6 @@ function openModal(type: string, guest: GuestType) {
   if (guest.id == 0) {
     guest.tickets = Date.now()
   }
-  inputRef.value?.focus()
   currentGuest.value = { ...guest }
 }
 
@@ -31,7 +49,10 @@ function openDelModal(guest: GuestType) {
   showDelModal.value = true
   currentGuest.value = { ...guest }
 }
-
+// Optional: Reset to page 1 when itemsPerPage changes
+watch(itemsPerPage, () => {
+  currentPage.value = 1
+})
 </script>
 
 <template>
@@ -39,7 +60,17 @@ function openDelModal(guest: GuestType) {
 <div class="divider"></div>
 
 <div class="flex items-center justify-between text-white mt-4">
-  <span class="text-black text-sm"><b>{{ guests.length }}</b> data(s) available</span>
+  <div>
+    <span class="text-black text-sm">show <b>{{ from }} to {{ to }}</b> of <b>{{ guests.length }}</b> data(s)</span>
+    &nbsp;&nbsp;
+    <select id="perPage" v-model="itemsPerPage" class="border rounded px-6 text-sm text-gray-800">
+      <option :value="5">5</option>
+      <option :value="10">10</option>
+      <option :value="25">25</option>
+      <option :value="50">50</option>
+    </select>
+  </div>
+
   <div>
     <button class="px-4 py-2 bg-gray-800 text-white border border-gray-800 rounded text-sm hover:bg-gray-100 hover:text-gray-800" @click="openModal('add', {id:0, email:'',tickets:0} )">
       <i class="mdi mdi-plus-outline"></i>&nbsp;
@@ -70,8 +101,8 @@ function openDelModal(guest: GuestType) {
           <div class="p-3">loading....</div>
         </td>
       </tr>
-      <tr v-for="(guest, index) in guests" :key="guest.id" class="hover:bg-gray-700">
-        <td class="px-4 py-2 border">{{ index + 1 }}</td>
+      <tr v-for="(guest, index) in paginatedGuests" :key="guest.id" class="hover:bg-gray-700">
+        <td class="px-4 py-2 border">{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
         <td class="px-4 py-2 border">{{ guest.tickets }}</td>
         <td class="px-4 py-2 border">{{ guest.email }}</td>
         <td class="px-4 py-2 border">
@@ -88,6 +119,32 @@ function openDelModal(guest: GuestType) {
       </tr>
     </tbody>
   </table>
+
+  <!-- Pagination Controls -->
+  <div class="mt-4 flex items-center justify-end space-x-2">
+    <div class="flex border border-gray-400 rounded">
+      <button @click="setPage(currentPage - 1)" :disabled="currentPage === 1" 
+        class="px-3 py-1 bg-gray-200 rounded disabled:text-gray-400">
+        &laquo;
+      </button>
+
+      <button
+        v-for="page in totalPages"
+        :key="page"
+        @click="setPage(page)"
+        :class="['px-3 py-1', currentPage === page ? 'bg-gray-800 text-white' : 'bg-gray-200']"
+      >
+        {{ page }}
+      </button>
+
+      <button @click="setPage(currentPage + 1)" :disabled="currentPage === totalPages" 
+        class="px-3 py-1 bg-gray-200 rounded disabled:text-gray-400">
+        &raquo;
+      </button>
+
+    </div>
+  </div>
+
 </div>
 
 <!-- Modal -->
@@ -103,7 +160,7 @@ function openDelModal(guest: GuestType) {
     <div class="mt-2">
       <span class="text-gray-500">Email</span>
       <input v-model="currentGuest.email" type="text" placeholder="Guest Email" 
-      class="w-full border p-2 mb-4 rounded" ref="inputRef"
+      class="w-full border p-2 mb-4 rounded"
       @keydown.enter="saveGuest(currentGuest, isEdit, 'new')" />
     </div>
 

@@ -1,8 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+const base = "/kpa-flex-project"
+
 const routes = [
-  { path: '/', component: () => import('../components/main-content.vue') },
-  { path: '/guests', component: () => import('../components/guest-content.vue') }
+  { path: base+'/', component: () => import('../components/main-content.vue') },
+  { path: base+'/guests', component: () => import('../components/guest-content.vue') }
 ]
 
 const router = createRouter({

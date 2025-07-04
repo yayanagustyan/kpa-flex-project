@@ -2,9 +2,10 @@
 import { mdiViewDashboardOutline, mdiAccountGroupOutline } from '@mdi/js'
 
 import { ref } from 'vue'
+const base = "/kpa-flex-project"
 const menus = ref([
-  { id: 0, name: 'Dashboard', path: '/', icon: mdiViewDashboardOutline },
-  { id: 1, name: 'Guests', path: '/guests', icon: mdiAccountGroupOutline },
+  { id: 0, name: 'Dashboard', path: base+'/', icon: mdiViewDashboardOutline },
+  { id: 1, name: 'Guests', path: base+'/guests', icon: mdiAccountGroupOutline },
   // { id: 3, name: 'Logout', path: '/logout', icon: mdiLogout }
 ])
 
